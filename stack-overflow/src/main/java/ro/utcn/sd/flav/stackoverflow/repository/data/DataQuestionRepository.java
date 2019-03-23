@@ -1,13 +1,11 @@
 package ro.utcn.sd.flav.stackoverflow.repository.data;
 
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 import ro.utcn.sd.flav.stackoverflow.entity.Question;
 import ro.utcn.sd.flav.stackoverflow.entity.Tag;
 import ro.utcn.sd.flav.stackoverflow.repository.QuestionRepository;
 
 
-import java.util.ArrayList;
 import java.util.List;
 
 

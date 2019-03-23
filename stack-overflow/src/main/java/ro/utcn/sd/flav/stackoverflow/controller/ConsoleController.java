@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import ro.utcn.sd.flav.stackoverflow.entity.*;
 import ro.utcn.sd.flav.stackoverflow.exception.AccountNotFoundException;
 import ro.utcn.sd.flav.stackoverflow.service.AccountManagementService;
+import ro.utcn.sd.flav.stackoverflow.service.AnswerManagementService;
 import ro.utcn.sd.flav.stackoverflow.service.QuestionManagementService;
 import ro.utcn.sd.flav.stackoverflow.service.TagManagementService;
 
@@ -22,6 +23,7 @@ public class ConsoleController implements CommandLineRunner {
     private final AccountManagementService accountManagementService;
     private final QuestionManagementService questionManagementService;
     private final TagManagementService tagManagementService;
+    private final AnswerManagementService answerManagementService;
     private ApplicationUser user;
 
 
@@ -107,7 +109,8 @@ public class ConsoleController implements CommandLineRunner {
         scanner.nextLine();
 
         while (!done) {
-            print("Possible commands for a user:    'create question'   'list questions'    'search by title'    'search by tag'    'exit'");
+            print("Possible commands for a user:    'create question'   'list questions'    'search by title'    'search by tag'    " +
+                    "'add answer'   'show question'    'delete answer'    'update answer'    'exit'");
 
             String command = scanner.nextLine();
             done = handleUserCommand(command);
@@ -131,11 +134,42 @@ public class ConsoleController implements CommandLineRunner {
             case "search by title":
                 handleSearchQuestionsByTitle();
                 return false;
+            case "add answer":
+                handleAddAnswer();
+                return false;
+            case "show question":
+                handleShowQuestion();
+                return false;
+            case "delete answer":
+                handleDeleteAnswer();
+                return false;
+            case "update answer":
+                handleUpdateAnswerText();
+                return false;
             case "exit":
                 return true;
             default:
                 print("Unknown command. Try again.");
                 return false;
+        }
+    }
+
+    private void handleShowQuestion() {
+
+        print("Type question id you want to see: ");
+        int questionId = scanner.nextInt();
+        scanner.nextLine();
+
+        Question question = questionManagementService.getQuestionById(questionId);
+        if(question != null) {
+
+            print(question.toString() + "\n");
+
+            List<Answer> answers = answerManagementService.listAnswers(questionId);
+            if (answers.isEmpty())
+                print("No answers for this question");
+            else
+                answers.forEach(a -> print(a.toString() + "\n"));
         }
     }
 
@@ -213,7 +247,50 @@ public class ConsoleController implements CommandLineRunner {
     }
 
 
+    private void handleAddAnswer() {
+        print("Type question id to answer to: ");
+        int questionId = scanner.nextInt();
 
+        if(questionManagementService.getQuestionById(questionId) != null) {
+
+            print("The question is: \n");
+            print(questionManagementService.getQuestionById(questionId).toString());
+
+            print("\nType answer: ");
+            scanner.nextLine();
+
+            String text = scanner.nextLine().trim();
+
+            answerManagementService.addAnswer(this.user.getUserId(), questionId, text);
+
+            int index = answerManagementService.listAnswers(questionId).size() - 1;
+            Answer answer = answerManagementService.listAnswers(questionId).get(index);
+            print("\n" + answer.toString());
+        }
+        else
+            scanner.nextLine();
+
+
+    }
+
+    private void handleDeleteAnswer() {
+        print("Enter answer id to delete: ");
+        int answerId = scanner.nextInt();
+        scanner.nextLine();
+
+        answerManagementService.removeAnswer(this.user.getUserId(), answerId);
+    }
+
+    private void handleUpdateAnswerText() {
+        print("Type answer id to edit: ");
+        int answerId = scanner.nextInt();
+        scanner.nextLine();
+
+        print("Edit answer: ");
+        String newText = scanner.nextLine().trim();
+
+        answerManagementService.updateAnswer(this.user.getUserId(), answerId, newText);
+    }
 
     private void print(String value) {
         System.out.println(value);

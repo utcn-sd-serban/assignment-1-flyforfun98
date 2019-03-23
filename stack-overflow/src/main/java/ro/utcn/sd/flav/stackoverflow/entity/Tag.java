@@ -33,8 +33,8 @@ public class Tag {
         this.title = title;
     }
 
-    public void addQuestion(Question question)
+   /* public void addQuestion(Question question)
     {
         questions.add(question);
-    }
+    }*/
 }

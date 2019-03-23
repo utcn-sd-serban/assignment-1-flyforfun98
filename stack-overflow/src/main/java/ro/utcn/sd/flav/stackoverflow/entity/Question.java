@@ -36,6 +36,7 @@ public class Question implements Comparable<Question>{
             inverseJoinColumns = @JoinColumn(name = "tag_id_fk"))
     private List<Tag> tags;
 
+
     public Question(Integer authorId, String title, String text, Date creationDate, int score)
     {
         this.authorId = authorId;
@@ -81,6 +82,7 @@ public class Question implements Comparable<Question>{
                 "\nQuestion title: " + title +
                 "\nQuestion text: " + text +
                 "\nQuestion creation date: " + creationDate.toString() +
+                "\nQuestion score: " + score +
                 "\nQuestion tags: ";
         for(Tag i : tags) {
             question += i.getTitle() + " ";

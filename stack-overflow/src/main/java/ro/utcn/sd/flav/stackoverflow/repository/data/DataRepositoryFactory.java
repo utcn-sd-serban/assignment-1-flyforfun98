@@ -3,10 +3,8 @@ package ro.utcn.sd.flav.stackoverflow.repository.data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-import ro.utcn.sd.flav.stackoverflow.repository.AccountRepository;
-import ro.utcn.sd.flav.stackoverflow.repository.QuestionRepository;
-import ro.utcn.sd.flav.stackoverflow.repository.RepositoryFactory;
-import ro.utcn.sd.flav.stackoverflow.repository.TagRepository;
+import ro.utcn.sd.flav.stackoverflow.repository.*;
+import ro.utcn.sd.flav.stackoverflow.repository.AnswerRepository;
 
 @Component
 @RequiredArgsConstructor
@@ -16,6 +14,7 @@ public class DataRepositoryFactory implements RepositoryFactory{
     private final DataAccountRepository accountRepository;
     private final DataQuestionRepository questionRepository;
     private final DataTagRepository tagRepository;
+    private final DataAnswerRepository answerRepository;
 
     @Override
     public AccountRepository createAccountRepository() {
@@ -30,5 +29,10 @@ public class DataRepositoryFactory implements RepositoryFactory{
     @Override
     public TagRepository createTagRepository() {
         return tagRepository;
+    }
+
+    @Override
+    public AnswerRepository createAnswerRepository() {
+        return answerRepository;
     }
 }

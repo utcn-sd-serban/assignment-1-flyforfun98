@@ -72,4 +72,16 @@ public class QuestionManagementService {
 
         return listQuestions().stream().filter(q -> q.tagsToString().containsAll(questionTags)).collect(Collectors.toList());
     }
+
+    public Question getQuestionById(int questionId) {
+
+        try {
+            return repositoryFactory.createQuestionRepository().findById(questionId).orElseThrow(QuestionNotFoundException::new);
+        }
+        catch (QuestionNotFoundException e)
+        {
+            System.out.println("No question with this id was found.");
+            return null;
+        }
+    }
 }
