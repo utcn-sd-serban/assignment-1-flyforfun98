@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS tag (
 );
 
 
-CREATE TABLE IF NOT EXISTS questiontag (
+CREATE TABLE IF NOT EXISTS question_tags (
   question_id_fk1 INT UNSIGNED NOT NULL AUTO_INCREMENT,
   tag_id_fk INT UNSIGNED NOT NULL,
   PRIMARY KEY (question_id_fk1, tag_id_fk),

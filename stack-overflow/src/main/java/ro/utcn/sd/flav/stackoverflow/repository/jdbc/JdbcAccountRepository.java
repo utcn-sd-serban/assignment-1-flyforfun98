@@ -35,7 +35,7 @@ public class JdbcAccountRepository implements AccountRepository{
     @Override
     public void remove(ApplicationUser applicationUser) {
 
-        template.update("DELETE FROM application_user WHERE id = ?", applicationUser.getUserId());
+        template.update("DELETE FROM application_user WHERE user_id = ?", applicationUser.getUserId());
     }
 
     @Override

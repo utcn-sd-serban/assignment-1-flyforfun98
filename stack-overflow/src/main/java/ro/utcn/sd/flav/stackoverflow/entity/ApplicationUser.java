@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Data
 @Entity
@@ -24,6 +25,11 @@ public class ApplicationUser {
     private UserStatus status;
     private int points;
 
+    /*
+    @OneToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name = "question")
+    private List<Question> questions;
+*/
     public ApplicationUser(String username, String password, UserPermission permission, UserStatus status, int points) {
         this.username = username;
         this.password = password;
@@ -31,4 +37,14 @@ public class ApplicationUser {
         this.status = status;
         this.points = points;
     }
+
+    /*
+    public ApplicationUser(Integer userId, String username, String password, UserPermission permission, UserStatus status, int points) {
+        this.userId = userId;
+        this.username = username;
+        this.password = password;
+        this.permission = permission;
+        this.status = status;
+        this.points = points;
+    }*/
 }

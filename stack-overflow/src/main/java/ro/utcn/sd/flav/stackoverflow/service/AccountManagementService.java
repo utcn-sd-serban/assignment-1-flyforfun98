@@ -52,26 +52,26 @@ public class AccountManagementService {
     }
 
     @Transactional
-    public boolean isAccountExistent(String username, String password, boolean register)
+    public ApplicationUser isAccountExistent(String username, String password, boolean register)
     {
 
         if(register)
         {
             for (ApplicationUser user : listUsers()) {
                 if (user.getUsername().equals(username) || user.getPassword().equals(password))
-                    return true;
+                    return user;
             }
         }
 
         else {
             for (ApplicationUser user : listUsers()) {
                 if (user.getUsername().equals(username) && user.getPassword().equals(password))
-                    return true;
+                    return user;
             }
         }
 
 
-        return false;
+        return null;
     }
 
 }

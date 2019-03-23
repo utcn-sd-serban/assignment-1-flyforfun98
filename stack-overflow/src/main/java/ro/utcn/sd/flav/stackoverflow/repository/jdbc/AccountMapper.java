@@ -6,7 +6,6 @@ import ro.utcn.sd.flav.stackoverflow.entity.ApplicationUser;
 import ro.utcn.sd.flav.stackoverflow.entity.UserPermission;
 import ro.utcn.sd.flav.stackoverflow.entity.UserStatus;
 
-import javax.persistence.Enumerated;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 

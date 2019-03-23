@@ -2,15 +2,16 @@ package ro.utcn.sd.flav.stackoverflow.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import ro.utcn.sd.flav.stackoverflow.entity.ApplicationUser;
-import ro.utcn.sd.flav.stackoverflow.entity.UserPermission;
-import ro.utcn.sd.flav.stackoverflow.entity.UserStatus;
+import ro.utcn.sd.flav.stackoverflow.entity.*;
 import ro.utcn.sd.flav.stackoverflow.exception.AccountNotFoundException;
 import ro.utcn.sd.flav.stackoverflow.service.AccountManagementService;
+import ro.utcn.sd.flav.stackoverflow.service.QuestionManagementService;
+import ro.utcn.sd.flav.stackoverflow.service.TagManagementService;
 
-
-import java.util.Scanner;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -19,6 +20,9 @@ import java.util.Scanner;
 public class ConsoleController implements CommandLineRunner {
     private final Scanner scanner = new Scanner(System.in);
     private final AccountManagementService accountManagementService;
+    private final QuestionManagementService questionManagementService;
+    private final TagManagementService tagManagementService;
+    private ApplicationUser user;
 
 
     @Override
@@ -66,7 +70,7 @@ public class ConsoleController implements CommandLineRunner {
         String username = scanner.next().trim();
         print("Password:");
         String password = scanner.next().trim();
-        if(!accountManagementService.isAccountExistent(username, password, true)) {
+        if( accountManagementService.isAccountExistent(username, password, true) == null) {
             ApplicationUser user = accountManagementService.addUser(username, password, UserPermission.USER, UserStatus.ALLOWED,0);
             print("Created user: " + user + ".");
         }
@@ -82,8 +86,10 @@ public class ConsoleController implements CommandLineRunner {
         String password = scanner.next().trim();
 
 
-        if( accountManagementService.isAccountExistent(username, password, false) )
+        if( (this.user = accountManagementService.isAccountExistent(username, password, false)) != null )
         {
+
+
             print("You have successfully logged in!");
             return !handleAccountOperations();
 
@@ -96,9 +102,14 @@ public class ConsoleController implements CommandLineRunner {
     private boolean handleAccountOperations() {
 
         boolean done = false;
+
+        // To consume the newline
+        scanner.nextLine();
+
         while (!done) {
-            print("Possible commands for a user:    'ask'   'search'    'list'    'exit'");
-            String command = scanner.next().trim();
+            print("Possible commands for a user:    'create question'   'list questions'    'search by title'    'search by tag'    'exit'");
+
+            String command = scanner.nextLine();
             done = handleUserCommand(command);
         }
 
@@ -108,14 +119,17 @@ public class ConsoleController implements CommandLineRunner {
     private boolean handleUserCommand(String command) {
 
         switch (command) {
-            case "ask":
+            case "create question":
                 handleAskQuestion();
                 return false;
-            case "list":
+            case "list questions":
                 handleListQuestions();
                 return false;
-            case "search":
+            case "search by tag":
                 handleSearchQuestionsByTag();
+                return false;
+            case "search by title":
+                handleSearchQuestionsByTitle();
                 return false;
             case "exit":
                 return true;
@@ -125,16 +139,80 @@ public class ConsoleController implements CommandLineRunner {
         }
     }
 
+    private void handleSearchQuestionsByTitle() {
 
-    private void handleAskQuestion() {
-    }
+        print("Type a title: ");
+        String questionTitle = scanner.nextLine();
+        questionManagementService.filterQuestionByTitle(questionTitle).forEach(q -> print(q.toString() + "\n\n"));
 
-    private void handleListQuestions() {
     }
 
     private void handleSearchQuestionsByTag() {
 
+        print("Type a tag: ");
+        String questionTags = scanner.nextLine();
+
+        Set<String> tags = new HashSet<>(Arrays.asList(questionTags.toLowerCase().split(" ")));
+
+        questionManagementService.filterQuestionByTag(tags).forEach(q -> print(q.toString() + "\n\n"));
+
     }
+
+
+    private void handleAskQuestion() {
+
+
+        print("Type the question's title");
+        String questionTitle = scanner.nextLine();
+        print("Type the question's text");
+        String questionText = scanner.nextLine();
+        Date date = new Date();
+
+        print("Choose one or more tags for the question.\nYou can create new tags or choose an existing tag.\nThe existing tags are: " );
+        for (Tag i:tagManagementService.listTags())
+        {
+            System.out.print(i.getTitle() + "\t\t\t");
+        }
+
+        print("");
+        ArrayList<Tag> tags = new ArrayList<>();
+        boolean insert = true;
+        String tagTitle = scanner.next().trim();
+
+        if(!tagTitle.equals("NO"))
+        {
+            tags.add(tagManagementService.lookForTag(tagTitle));
+        }
+        else
+            insert = false;
+
+        scanner.nextLine();
+        while(insert)
+        {
+            print("Do you want to add another tag? Type NO to cancel, or enter another tag to continue.");
+            tagTitle = scanner.next().trim();
+            if(tagTitle.equals("NO"))
+                insert = false;
+            else
+            {
+                tags.add(tagManagementService.lookForTag(tagTitle));
+            }
+        }
+        if(tags.size() > 0) {
+            Question question = questionManagementService.addQuestion(this.user.getUserId(), questionTitle, questionText, new java.sql.Date(date.getTime()), 0, tags);
+            print("Created question: " + question.toString() + '.');
+        }
+        else
+            print("No tag entered, the question is cancelled");
+        scanner.nextLine();
+    }
+
+    private void handleListQuestions() {
+
+        questionManagementService.listQuestions().forEach(q -> print(q.toString() + "\n\n"));
+    }
+
+
 
 
     private void print(String value) {

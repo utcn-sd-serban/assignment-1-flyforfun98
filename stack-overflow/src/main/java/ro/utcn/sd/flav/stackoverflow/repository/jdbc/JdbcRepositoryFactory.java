@@ -5,7 +5,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ro.utcn.sd.flav.stackoverflow.repository.AccountRepository;
+import ro.utcn.sd.flav.stackoverflow.repository.QuestionRepository;
 import ro.utcn.sd.flav.stackoverflow.repository.RepositoryFactory;
+import ro.utcn.sd.flav.stackoverflow.repository.TagRepository;
 
 @Component
 @RequiredArgsConstructor
@@ -18,4 +20,16 @@ public class JdbcRepositoryFactory implements RepositoryFactory{
     public AccountRepository createAccountRepository() {
         return new JdbcAccountRepository(template);
     }
+
+    @Override
+    public QuestionRepository createQuestionRepository() {
+        return new JdbcQuestionRepository(template);
+    }
+
+    @Override
+    public TagRepository createTagRepository() {
+        return new JdbcTagRepository(template);
+    }
+
+
 }
