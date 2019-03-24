@@ -43,8 +43,12 @@ public class JdbcQuestionRepository implements QuestionRepository{
         List<Question> questions = template.query("SELECT * FROM question WHERE question_id = ?", new QuestionMapper(), id);
         if(questions.isEmpty())
             return Optional.empty();
-        else
+        else {
+
+            List<Tag> tags = findTagsByQuestion(questions.get(0));
+            questions.get(0).setTags(tags);
             return Optional.of(questions.get(0));
+        }
     }
 
     @Override
@@ -76,7 +80,7 @@ public class JdbcQuestionRepository implements QuestionRepository{
     private void update(Question question)
     {
         template.update("UPDATE question SET author_id = ?, title = ?, text = ?, creation_date = ?, score = ? WHERE question_id = ?",
-               question.getAuthorId(), question.getTitle(), question.getText(), question.getText(),
+               question.getAuthorId(), question.getTitle(), question.getText(),
                      question.getCreationDate(), question.getScore(), question.getQuestionId());
     }
 }

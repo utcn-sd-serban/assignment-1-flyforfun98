@@ -3,6 +3,8 @@ package ro.utcn.sd.flav.stackoverflow.entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 
 import javax.persistence.*;
@@ -29,12 +31,22 @@ public class Question implements Comparable<Question>{
     private Date creationDate;
     private int score;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(
             name = "question_tags",
             joinColumns = @JoinColumn(name = "question_id_fk1"),
             inverseJoinColumns = @JoinColumn(name = "tag_id_fk"))
     private List<Tag> tags;
+
+
+    /*
+    @ManyToMany(cascade = CascadeType.MERGE)
+    //@LazyCollection(LazyCollectionOption.FALSE)
+    @JoinTable(
+            name = "vote_question",
+            joinColumns = @JoinColumn(name = "question__fk2"),
+            inverseJoinColumns = @JoinColumn(name = "author_id_fk1"))
+    private List<ApplicationUser> applicationUsers;*/
 
 
     public Question(Integer authorId, String title, String text, Date creationDate, int score)

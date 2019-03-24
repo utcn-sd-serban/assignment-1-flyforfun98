@@ -7,6 +7,7 @@ import ro.utcn.sd.flav.stackoverflow.repository.QuestionRepository;
 
 
 import java.util.List;
+import java.util.Optional;
 
 
 public interface DataQuestionRepository extends Repository<Question, Integer>, QuestionRepository {
@@ -32,6 +33,7 @@ public interface DataQuestionRepository extends Repository<Question, Integer>, Q
     {
         return question.getTags();
     }
+
 
 
 }

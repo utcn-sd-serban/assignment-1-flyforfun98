@@ -6,13 +6,16 @@ import org.springframework.transaction.annotation.Transactional;
 import ro.utcn.sd.flav.stackoverflow.entity.Answer;
 import ro.utcn.sd.flav.stackoverflow.entity.ApplicationUser;
 import ro.utcn.sd.flav.stackoverflow.entity.UserPermission;
+import ro.utcn.sd.flav.stackoverflow.entity.VoteAnswer;
 import ro.utcn.sd.flav.stackoverflow.exception.AccountNotFoundException;
 import ro.utcn.sd.flav.stackoverflow.exception.AnswerNotFoundException;
 import ro.utcn.sd.flav.stackoverflow.repository.AnswerRepository;
 import ro.utcn.sd.flav.stackoverflow.repository.RepositoryFactory;
 
 import java.sql.Date;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -84,6 +87,45 @@ public class AnswerManagementService {
     @Transactional
     public List<Answer> listAnswers (int questionIdFk) {
 
-        return repositoryFactory.createAnswerRepository().findAllByQuestionIdFk(questionIdFk);//.stream().sorted(Comparator.comparing(Answer::getVoteCount).reversed()).collect(Collectors.toList());
+        return repositoryFactory.createAnswerRepository().findAllByQuestionIdFk(questionIdFk).stream()
+                .sorted(Comparator.comparing(Answer::getScore).reversed()).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public boolean handleVote(Integer userId, int answerId, boolean vote) {
+
+        VoteAnswer voteAnswer = repositoryFactory.createVoteAnswerRepository().findVoteForAnswer(userId, answerId).orElse(null);
+        Answer answer = repositoryFactory.createAnswerRepository().findById(answerId).orElse(null);
+
+        if((voteAnswer != null && voteAnswer.isVoteType() == vote) || answer == null || userId == answer.getAuthorIdFk())
+            return true;
+        else
+        {
+            if(voteAnswer == null)
+                voteAnswer = new VoteAnswer(userId, answer.getAuthorIdFk(), answerId, vote);
+
+            voteAnswer.setVoteType(vote);
+
+            if(vote)
+                answer.setScore(answer.getScore() + 1);
+            else
+                answer.setScore(answer.getScore() - 1);
+
+            repositoryFactory.createAnswerRepository().save(answer);
+            repositoryFactory.createVoteAnswerRepository().save(voteAnswer);
+
+            return false;
+        }
+    }
+
+    @Transactional
+    public int voteCount(int answerId)
+    {
+        List<VoteAnswer> voteAnswer = repositoryFactory.createVoteAnswerRepository().findAllVotesOfAnswer(answerId);
+
+        int downVotes = (int)voteAnswer.stream().filter(v -> !v.isVoteType()).count();
+        int upVotes = (int)voteAnswer.stream().filter(v -> v.isVoteType()).count();
+
+        return  upVotes - downVotes;
     }
 }

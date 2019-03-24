@@ -15,7 +15,7 @@ public class AnswerMapper implements RowMapper<Answer> {
                 resultSet.getInt("answer_id"),
                 resultSet.getInt("author_id_fk"),
                 resultSet.getInt("question_id_fk"),
-                resultSet.getString("title"),
+                resultSet.getString("text"),
                 resultSet.getDate("creation_date"),
                 resultSet.getInt("score"));
 

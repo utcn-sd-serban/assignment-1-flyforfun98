@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import ro.utcn.sd.flav.stackoverflow.entity.VoteQuestion;
 import ro.utcn.sd.flav.stackoverflow.repository.*;
 import ro.utcn.sd.flav.stackoverflow.repository.AnswerRepository;
 
@@ -32,6 +33,16 @@ public class JdbcRepositoryFactory implements RepositoryFactory{
     @Override
     public AnswerRepository createAnswerRepository() {
         return new JdbcAnswerRepository(template);
+    }
+
+    @Override
+    public VoteQuestionRepository createVoteQuestionRepository() {
+        return new JdbcVoteQuestionRepository(template);
+    }
+
+    @Override
+    public VoteAnswerRepository createVoteAnswerRepository() {
+        return new JdbcVoteAnswerRepository(template);
     }
 
 

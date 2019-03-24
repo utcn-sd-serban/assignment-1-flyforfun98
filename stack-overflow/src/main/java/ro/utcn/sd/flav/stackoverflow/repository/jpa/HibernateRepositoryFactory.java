@@ -33,4 +33,14 @@ public class HibernateRepositoryFactory implements RepositoryFactory{
     public AnswerRepository createAnswerRepository() {
         return new HibernateAnswerRepository(entityManager);
     }
+
+    @Override
+    public VoteQuestionRepository createVoteQuestionRepository() {
+        return new HibernateVoteQuestionRepository(entityManager);
+    }
+
+    @Override
+    public VoteAnswerRepository createVoteAnswerRepository() {
+        return new HibernateVoteAnswerRepository(entityManager);
+    }
 }

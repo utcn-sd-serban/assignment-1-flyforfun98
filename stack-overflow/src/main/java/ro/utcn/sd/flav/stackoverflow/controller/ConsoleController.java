@@ -110,7 +110,8 @@ public class ConsoleController implements CommandLineRunner {
 
         while (!done) {
             print("Possible commands for a user:    'create question'   'list questions'    'search by title'    'search by tag'    " +
-                    "'add answer'   'show question'    'delete answer'    'update answer'    'exit'");
+                    "'add answer'   'show question'\n                                 'delete answer'    'update answer'    'exit'    " +
+                    "'vote question'    'vote answer'   'exit'");
 
             String command = scanner.nextLine();
             done = handleUserCommand(command);
@@ -146,50 +147,18 @@ public class ConsoleController implements CommandLineRunner {
             case "update answer":
                 handleUpdateAnswerText();
                 return false;
+            case "vote question":
+                handleVoteQuestion();
+                return false;
+            case "vote answer":
+                handleVoteAnswer();
+                return false;
             case "exit":
                 return true;
             default:
                 print("Unknown command. Try again.");
                 return false;
         }
-    }
-
-    private void handleShowQuestion() {
-
-        print("Type question id you want to see: ");
-        int questionId = scanner.nextInt();
-        scanner.nextLine();
-
-        Question question = questionManagementService.getQuestionById(questionId);
-        if(question != null) {
-
-            print(question.toString() + "\n");
-
-            List<Answer> answers = answerManagementService.listAnswers(questionId);
-            if (answers.isEmpty())
-                print("No answers for this question");
-            else
-                answers.forEach(a -> print(a.toString() + "\n"));
-        }
-    }
-
-    private void handleSearchQuestionsByTitle() {
-
-        print("Type a title: ");
-        String questionTitle = scanner.nextLine();
-        questionManagementService.filterQuestionByTitle(questionTitle).forEach(q -> print(q.toString() + "\n\n"));
-
-    }
-
-    private void handleSearchQuestionsByTag() {
-
-        print("Type a tag: ");
-        String questionTags = scanner.nextLine();
-
-        Set<String> tags = new HashSet<>(Arrays.asList(questionTags.toLowerCase().split(" ")));
-
-        questionManagementService.filterQuestionByTag(tags).forEach(q -> print(q.toString() + "\n\n"));
-
     }
 
 
@@ -246,6 +215,27 @@ public class ConsoleController implements CommandLineRunner {
         questionManagementService.listQuestions().forEach(q -> print(q.toString() + "\n\n"));
     }
 
+    private void handleSearchQuestionsByTag() {
+
+        print("Type a tag: ");
+        String questionTags = scanner.nextLine();
+
+        Set<String> tags = new HashSet<>(Arrays.asList(questionTags.toLowerCase().split(" ")));
+
+        questionManagementService.filterQuestionByTag(tags).forEach(q -> print(q.toString() + "\n\n"));
+
+    }
+
+
+    private void handleSearchQuestionsByTitle() {
+
+        print("Type a title: ");
+        String questionTitle = scanner.nextLine();
+        questionManagementService.filterQuestionByTitle(questionTitle).forEach(q -> print(q.toString() + "\n\n"));
+
+    }
+
+
 
     private void handleAddAnswer() {
         print("Type question id to answer to: ");
@@ -273,6 +263,39 @@ public class ConsoleController implements CommandLineRunner {
 
     }
 
+
+    private void handleShowQuestion() {
+
+        print("Type question id you want to see: ");
+        int questionId = scanner.nextInt();
+        scanner.nextLine();
+
+        Question question = questionManagementService.getQuestionById(questionId);
+        if(question != null) {
+
+            int votes = questionManagementService.voteCount(questionId);
+            question.setScore(votes);
+
+            print(question.toString() + "\n");
+
+            List<Answer> answers = answerManagementService.listAnswers(questionId);
+            if (answers.isEmpty())
+                print("No answers for this question");
+            else {
+               // answers.forEach(a -> a.setScore(answerManagementService.voteCount(a.getAnswerId())));
+                for (Answer i: answers) {
+                    votes = answerManagementService.voteCount(i.getAnswerId());
+                    i.setScore(votes);
+                }
+                answers.forEach(a -> print(a.toString() + "\n"));
+            }
+        }
+    }
+
+
+
+
+
     private void handleDeleteAnswer() {
         print("Enter answer id to delete: ");
         int answerId = scanner.nextInt();
@@ -291,6 +314,74 @@ public class ConsoleController implements CommandLineRunner {
 
         answerManagementService.updateAnswer(this.user.getUserId(), answerId, newText);
     }
+
+    private void handleVoteQuestion() {
+
+        print("Type question id to vote: ");
+        int questionId = scanner.nextInt();
+        scanner.nextLine();
+
+        print("Type UP or DOWN to vote the question: ");
+        String voteText = scanner.next().trim().toUpperCase();
+
+        boolean vote;
+        if(voteText.equals("UP") || voteText.equals("DOWN"))
+        {
+            if(voteText.equals("UP"))
+                vote = true;
+            else
+                vote = false;
+
+            boolean isVoted = questionManagementService.handleVote(this.user.getUserId(), questionId, vote);
+
+            if(!isVoted) {
+                print("Vote successfully saved");
+                print("The number of votes for this question is: " + questionManagementService.voteCount(questionId));
+            }
+            else
+                print("Vote already registered, or user tried to vote itself, or question does not exist");
+
+            scanner.nextLine();
+
+        }
+        else
+            print("Not a vote");
+    }
+
+
+
+    private void handleVoteAnswer() {
+
+        print("Type answer id to vote: ");
+        int answerId = scanner.nextInt();
+        scanner.nextLine();
+
+        print("Type UP or DOWN to vote the answer: ");
+        String voteText = scanner.next().trim().toUpperCase();
+
+        boolean vote;
+        if(voteText.equals("UP") || voteText.equals("DOWN"))
+        {
+            if(voteText.equals("UP"))
+                vote = true;
+            else
+                vote = false;
+
+            boolean isVoted = answerManagementService.handleVote(this.user.getUserId(), answerId, vote);
+
+            if(!isVoted) {
+                print("Vote successfully saved");
+                print("The number of votes for this answer is: " + answerManagementService.voteCount(answerId));
+            }
+            else
+                print("Vote already registered, or user tried to vote itself, or answer does not exist");
+
+            scanner.nextLine();
+        }
+        else
+            print("Not a vote");
+    }
+
 
     private void print(String value) {
         System.out.println(value);

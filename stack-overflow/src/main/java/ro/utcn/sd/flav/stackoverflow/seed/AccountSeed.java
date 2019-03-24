@@ -15,11 +15,10 @@ import ro.utcn.sd.flav.stackoverflow.repository.RepositoryFactory;
 @Component
 @RequiredArgsConstructor
 @Order(Ordered.HIGHEST_PRECEDENCE)
-public class AccountSeed implements CommandLineRunner {
+public class AccountSeed{
 
     private final RepositoryFactory repositoryFactory;
 
-    @Override
     @Transactional
     public void run(String... args) {
 

@@ -10,7 +10,6 @@ import java.util.List;
 @Data
 @Entity
 @Table(name = "application_user")
-@AllArgsConstructor
 @NoArgsConstructor
 public class ApplicationUser {
 
@@ -27,8 +26,7 @@ public class ApplicationUser {
 
 
     /*
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "question")
+    @ManyToMany(mappedBy = "applicationUsers", fetch = FetchType.EAGER)
     private List<Question> questions;*/
 
     public ApplicationUser(String username, String password, UserPermission permission, UserStatus status, int points) {
@@ -40,7 +38,7 @@ public class ApplicationUser {
     }
 
 
-    /*
+
     public ApplicationUser(Integer userId, String username, String password, UserPermission permission, UserStatus status, int points) {
         this.userId = userId;
         this.username = username;
@@ -48,5 +46,5 @@ public class ApplicationUser {
         this.permission = permission;
         this.status = status;
         this.points = points;
-    }*/
+    }
 }

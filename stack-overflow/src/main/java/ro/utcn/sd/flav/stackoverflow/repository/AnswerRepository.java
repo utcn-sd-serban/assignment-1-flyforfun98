@@ -14,4 +14,5 @@ public interface AnswerRepository {
     Optional<Answer> findById(int id);
 
     List<Answer> findAllByQuestionIdFk(int questionIdFk);
+
 }

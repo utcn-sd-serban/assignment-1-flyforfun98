@@ -65,5 +65,4 @@ public class HibernateQuestionRepository implements QuestionRepository{
 
 
 
-
 }

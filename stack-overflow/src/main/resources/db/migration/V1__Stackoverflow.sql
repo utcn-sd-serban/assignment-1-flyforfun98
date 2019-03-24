@@ -74,37 +74,56 @@ CREATE TABLE IF NOT EXISTS question_tags (
 );
 
 CREATE TABLE IF NOT EXISTS vote_question (
-  author_id_fk1 INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  question_id_fk2 INT UNSIGNED NOT NULL,
+  vote_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_gives_id INT UNSIGNED NOT NULL,
+  user_gets_id INT UNSIGNED NOT NULL,
+  question_voted_id INT UNSIGNED NOT NULL,
   vote_type TINYINT NOT NULL,
-  PRIMARY KEY (author_id_fk1, question_id_fk2),
-  INDEX question_id_fk2_idx (question_id_fk2 ASC),
-  CONSTRAINT author_id_fk1
-    FOREIGN KEY (author_id_fk1)
+  PRIMARY KEY (vote_id),
+  INDEX user_gives_id_idx (user_gives_id ASC),
+  INDEX user_gets_id_idx (user_gets_id ASC),
+  INDEX question_voted_id_idx (question_voted_id ASC),
+  CONSTRAINT user_gives_id
+    FOREIGN KEY (user_gives_id)
     REFERENCES application_user (user_id)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT question_id_fk2
-    FOREIGN KEY (question_id_fk2)
+  CONSTRAINT user_gets_id
+    FOREIGN KEY (user_gets_id)
+    REFERENCES application_user (user_id)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT question_voted_id
+    FOREIGN KEY (question_voted_id)
     REFERENCES question (question_id)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
 );
 
 
+
 CREATE TABLE IF NOT EXISTS vote_answer (
-  author_id_fk2 INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  answer_id_fk INT UNSIGNED NOT NULL,
+  vote_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_gives_answer_id INT UNSIGNED NOT NULL,
+  user_gets_answer_id INT UNSIGNED NOT NULL,
+  answer_voted_id INT UNSIGNED NOT NULL,
   vote_type TINYINT NOT NULL,
-  PRIMARY KEY (author_id_fk2, answer_id_fk),
-  INDEX answer_id_fk_idx (answer_id_fk ASC),
-  CONSTRAINT author_id_fk2
-    FOREIGN KEY (author_id_fk2)
+  PRIMARY KEY (vote_id),
+  INDEX user_gives_answer_id_idx (user_gives_answer_id ASC),
+  INDEX user_gets_answer_id_idx (user_gets_answer_id ASC),
+  INDEX answer_voted_id_idx (answer_voted_id ASC),
+  CONSTRAINT user_gives_answer_id
+    FOREIGN KEY (user_gives_answer_id)
     REFERENCES application_user (user_id)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT answer_id_fk
-    FOREIGN KEY (answer_id_fk)
+  CONSTRAINT user_gets_answer_id
+    FOREIGN KEY (user_gets_answer_id)
+    REFERENCES application_user (user_id)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT answer_voted_id
+    FOREIGN KEY (answer_voted_id)
     REFERENCES answer (answer_id)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ro.utcn.sd.flav.stackoverflow.entity.Question;
 import ro.utcn.sd.flav.stackoverflow.entity.Tag;
+import ro.utcn.sd.flav.stackoverflow.entity.VoteQuestion;
 import ro.utcn.sd.flav.stackoverflow.exception.QuestionNotFoundException;
 import ro.utcn.sd.flav.stackoverflow.repository.QuestionRepository;
 import ro.utcn.sd.flav.stackoverflow.repository.RepositoryFactory;
@@ -68,11 +69,13 @@ public class QuestionManagementService {
     }
 
 
+    @Transactional
     public List<Question> filterQuestionByTag(Set<String> questionTags) {
 
         return listQuestions().stream().filter(q -> q.tagsToString().containsAll(questionTags)).collect(Collectors.toList());
     }
 
+    @Transactional
     public Question getQuestionById(int questionId) {
 
         try {
@@ -83,5 +86,43 @@ public class QuestionManagementService {
             System.out.println("No question with this id was found.");
             return null;
         }
+    }
+
+    @Transactional
+    public boolean handleVote(Integer userId, int questionId, boolean vote) {
+
+        VoteQuestion voteQuestion = repositoryFactory.createVoteQuestionRepository().findVoteForQuestion(userId, questionId).orElse(null);
+        Question question = repositoryFactory.createQuestionRepository().findById(questionId).orElse(null);
+
+        if((voteQuestion != null && voteQuestion.isVoteType() == vote) || question == null || userId == question.getAuthorId())
+            return true;
+        else
+        {
+            if(voteQuestion == null)
+                voteQuestion = new VoteQuestion(userId,question.getAuthorId(),questionId, vote);
+
+            voteQuestion.setVoteType(vote);
+
+            if(vote)
+                question.setScore(question.getScore() + 1);
+            else
+                question.setScore(question.getScore() - 1);
+
+            repositoryFactory.createQuestionRepository().save(question);
+            repositoryFactory.createVoteQuestionRepository().save(voteQuestion);
+
+            return false;
+        }
+    }
+
+    @Transactional
+    public int voteCount(int questionId)
+    {
+        List<VoteQuestion> voteQuestions = repositoryFactory.createVoteQuestionRepository().findAllVotesOfQuestion(questionId);
+
+        int downVotes = (int)voteQuestions.stream().filter(v -> !v.isVoteType()).count();
+        int upVotes = (int)voteQuestions.stream().filter(v -> v.isVoteType()).count();
+
+        return  upVotes - downVotes;
     }
 }
