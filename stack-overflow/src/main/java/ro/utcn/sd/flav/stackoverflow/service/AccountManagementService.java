@@ -47,14 +47,19 @@ public class AccountManagementService {
     }
 
     @Transactional
-    public void updateAccount (int id, String newUsername, String newPassword, UserPermission newPermission)
+    public void updateAccount (int id, UserStatus newStatus)
     {
         AccountRepository accountRepository = repositoryFactory.createAccountRepository();
-        ApplicationUser applicationUser = accountRepository.findById(id).orElseThrow(AccountNotFoundException::new);
-        applicationUser.setPassword(newPassword);
-        applicationUser.setUsername(newUsername);
-        applicationUser.setPermission(newPermission);
-        accountRepository.save(applicationUser);
+
+        try {
+            ApplicationUser applicationUser = accountRepository.findById(id).orElseThrow(AccountNotFoundException::new);
+            applicationUser.setStatus(newStatus);
+            accountRepository.save(applicationUser);
+        }
+        catch(AccountNotFoundException e)
+        {
+            System.out.println("No user with this id");
+        }
     }
 
     @Transactional

@@ -12,6 +12,7 @@ import ro.utcn.sd.flav.stackoverflow.service.AnswerManagementService;
 import ro.utcn.sd.flav.stackoverflow.service.QuestionManagementService;
 import ro.utcn.sd.flav.stackoverflow.service.TagManagementService;
 
+import java.security.Permission;
 import java.util.*;
 
 @Component
@@ -91,9 +92,15 @@ public class ConsoleController implements CommandLineRunner {
         if( (this.user = accountManagementService.isAccountExistent(username, password, false)) != null )
         {
 
-
-            print("You have successfully logged in!");
-            return !handleAccountOperations();
+            if(this.user.getStatus() != UserStatus.BANNED) {
+                print("You have successfully logged in!");
+                return !handleAccountOperations();
+            }
+            else
+            {
+                print("This account is banned");
+                return false;
+            }
 
         }
 
@@ -111,7 +118,7 @@ public class ConsoleController implements CommandLineRunner {
         while (!done) {
             print("Possible commands for a user:    'create question'   'list questions'    'search by title'    'search by tag'    " +
                     "'add answer'   'show question'\n                                 'delete answer'    'update answer'    'exit'    " +
-                    "'vote question'    'vote answer'   'exit'");
+                    "'vote question'    'vote answer'   'remove question'   'remove answer'   'update question'  'ban user'   'exit'");
 
             String command = scanner.nextLine();
             done = handleUserCommand(command);
@@ -153,6 +160,18 @@ public class ConsoleController implements CommandLineRunner {
             case "vote answer":
                 handleVoteAnswer();
                 return false;
+            case "remove question":
+                handleRemoveQuestion();
+                return false;
+            case "remove answer":
+                handleRemoveAnswer();
+                return false;
+            case "update question":
+                handleUpdateQuestion();
+                return false;
+            case "ban user":
+                banUser();
+                return false;
             case "exit":
                 return true;
             default:
@@ -160,6 +179,7 @@ public class ConsoleController implements CommandLineRunner {
                 return false;
         }
     }
+
 
 
     private void handleAskQuestion() {
@@ -384,6 +404,72 @@ public class ConsoleController implements CommandLineRunner {
             print("Not a vote");
     }
 
+
+    private void handleRemoveAnswer() {
+
+        if(!this.user.getPermission().equals(UserPermission.ADMIN))
+            print("Operation can be executed just by an ADMIN");
+        else
+        {
+            print("Select the id of the answer to be removed: ");
+            int answerId = scanner.nextInt();
+            scanner.nextLine();
+
+            answerManagementService.removeAnswer(this.user.getUserId(), answerId);
+        }
+    }
+
+    private void handleRemoveQuestion() {
+
+        if(!this.user.getPermission().equals(UserPermission.ADMIN))
+            print("Operation can be executed just by an ADMIN");
+        else
+        {
+            print("Select the id of the question to be removed: ");
+            int questionId = scanner.nextInt();
+            scanner.nextLine();
+
+            questionManagementService.removeQuestion(questionId);
+        }
+    }
+
+
+    private void handleUpdateQuestion() {
+
+        if(!this.user.getPermission().equals(UserPermission.ADMIN))
+            print("Operation can be executed just by an ADMIN");
+        else
+        {
+            print("Select the id of the question to be updated: ");
+            int questionId = scanner.nextInt();
+            scanner.nextLine();
+            print("Update the title: ");
+            String questionTitle = scanner.nextLine();
+            print("Update the text: ");
+            String questionText = scanner.nextLine();
+
+
+            questionManagementService.updateQuestion(questionId, questionTitle, questionText);
+        }
+    }
+
+    private void banUser() {
+
+        if(!this.user.getPermission().equals(UserPermission.ADMIN))
+            print("Operation can be executed just by an ADMIN");
+        else
+        {
+            print("Select the id of the user to be banned: ");
+            int userId = scanner.nextInt();
+            scanner.nextLine();
+
+            accountManagementService.updateAccount(userId, UserStatus.BANNED);
+
+        }
+
+    }
+
+
     private int getPoints(Integer authorId) {
 
         return accountManagementService.findApplicationUserByUserId(authorId).getPoints();
@@ -393,6 +479,7 @@ public class ConsoleController implements CommandLineRunner {
 
         return accountManagementService.findApplicationUserByUserId(authorId).getUsername();
     }
+
 
     private void print(String value) {
         System.out.println(value);

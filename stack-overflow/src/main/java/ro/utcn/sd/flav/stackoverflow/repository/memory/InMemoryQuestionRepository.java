@@ -1,6 +1,5 @@
 package ro.utcn.sd.flav.stackoverflow.repository.memory;
 
-import ro.utcn.sd.flav.stackoverflow.entity.ApplicationUser;
 import ro.utcn.sd.flav.stackoverflow.entity.Question;
 import ro.utcn.sd.flav.stackoverflow.entity.Tag;
 import ro.utcn.sd.flav.stackoverflow.repository.QuestionRepository;
@@ -8,7 +7,7 @@ import ro.utcn.sd.flav.stackoverflow.repository.QuestionRepository;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
+
 
 public class InMemoryQuestionRepository implements QuestionRepository {
     private final Map<Integer, Question>  questionMap = new ConcurrentHashMap<>();

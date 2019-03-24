@@ -36,8 +36,16 @@ public class QuestionManagementService {
     public void removeQuestion(Integer id)
     {
         QuestionRepository questionRepository = repositoryFactory.createQuestionRepository();
-        Question question = questionRepository.findById(id).orElseThrow(QuestionNotFoundException::new);
-        questionRepository.remove(question);
+
+        try{
+
+            Question question = questionRepository.findById(id).orElseThrow(QuestionNotFoundException::new);
+            questionRepository.remove(question);
+            repositoryFactory.createQuestionRepository().remove(question);
+        }
+        catch (QuestionNotFoundException e){
+            System.out.println("Not a valid question id");
+        }
     }
 
     @Transactional
@@ -51,16 +59,19 @@ public class QuestionManagementService {
     }
 
     @Transactional
-    public void updateQuestion(int id, Integer authorId, String title, String text, Date creationDate, int score)
+    public void updateQuestion(int id, String title, String text)
     {
         QuestionRepository questionRepository = repositoryFactory.createQuestionRepository();
-        Question question = questionRepository.findById(id).orElseThrow(QuestionNotFoundException::new);
-        question.setAuthorId(authorId);
-        question.setTitle(title);
-        question.setText(text);
-        question.setCreationDate(creationDate);
-        question.setScore(score);
-        questionRepository.save(question);
+
+        try {
+            Question question = questionRepository.findById(id).orElseThrow(QuestionNotFoundException::new);
+            question.setTitle(title);
+            question.setText(text);
+            questionRepository.save(question);
+        }
+        catch (QuestionNotFoundException e){
+            System.out.println("No question with this id was found");
+        }
     }
 
     @Transactional
