@@ -3,6 +3,7 @@ package ro.utcn.sd.flav.stackoverflow.service;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ro.utcn.sd.flav.stackoverflow.entity.ApplicationUser;
 import ro.utcn.sd.flav.stackoverflow.entity.Question;
 import ro.utcn.sd.flav.stackoverflow.entity.Tag;
 import ro.utcn.sd.flav.stackoverflow.entity.VoteQuestion;
@@ -98,20 +99,27 @@ public class QuestionManagementService {
             return true;
         else
         {
-            if(voteQuestion == null)
-                voteQuestion = new VoteQuestion(userId,question.getAuthorId(),questionId, vote);
 
-            voteQuestion.setVoteType(vote);
+                if (voteQuestion == null) {
 
-            if(vote)
-                question.setScore(question.getScore() + 1);
-            else
-                question.setScore(question.getScore() - 1);
+                    voteQuestion = new VoteQuestion(userId, question.getAuthorId(), questionId, vote);
+                }
+                voteQuestion.setVoteType(vote);
 
-            repositoryFactory.createQuestionRepository().save(question);
-            repositoryFactory.createVoteQuestionRepository().save(voteQuestion);
+                if (vote) {
+                    question.setScore(question.getScore() + 1);
 
-            return false;
+                } else {
+
+                    question.setScore(question.getScore() - 1);
+
+                }
+
+                repositoryFactory.createQuestionRepository().save(question);
+                repositoryFactory.createVoteQuestionRepository().save(voteQuestion);
+
+                return false;
+
         }
     }
 
@@ -124,5 +132,28 @@ public class QuestionManagementService {
         int upVotes = (int)voteQuestions.stream().filter(v -> v.isVoteType()).count();
 
         return  upVotes - downVotes;
+    }
+
+    @Transactional
+    public void updatePoints(int questionId)
+    {
+        List<VoteQuestion> voteQuestions = repositoryFactory.createVoteQuestionRepository().findAllVotesOfQuestion(questionId);
+        Question question = repositoryFactory.createQuestionRepository().findById(questionId).orElse(null);
+
+        int downVotes = (int)voteQuestions.stream().filter(v -> !v.isVoteType()).count();
+        int upVotes = (int)voteQuestions.stream().filter(v -> v.isVoteType()).count();
+
+        if(question != null) {
+
+            ApplicationUser userQuestion = repositoryFactory.createAccountRepository().findById(question.getAuthorId()).orElse(null);
+
+            if(userQuestion != null) {
+                int downVotesScore = downVotes * 2;
+                int upVotesScore = upVotes * 5;
+                userQuestion.setPoints(userQuestion.getPoints() + upVotesScore - downVotesScore);
+
+                repositoryFactory.createAccountRepository().save(userQuestion);
+            }
+        }
     }
 }

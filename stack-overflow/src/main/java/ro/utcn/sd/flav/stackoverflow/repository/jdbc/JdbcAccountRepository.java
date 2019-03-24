@@ -47,6 +47,12 @@ public class JdbcAccountRepository implements AccountRepository{
             return Optional.of(users.get(0));
     }
 
+    @Override
+    public ApplicationUser findApplicationUserByUserId(int userId) {
+
+        return findById(userId).orElse(null);
+    }
+
     private int insert(ApplicationUser applicationUser)
     {
         SimpleJdbcInsert insert = new SimpleJdbcInsert(template);

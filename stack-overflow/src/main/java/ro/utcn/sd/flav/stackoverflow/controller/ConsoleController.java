@@ -212,7 +212,8 @@ public class ConsoleController implements CommandLineRunner {
 
     private void handleListQuestions() {
 
-        questionManagementService.listQuestions().forEach(q -> print(q.toString() + "\n\n"));
+        questionManagementService.listQuestions().forEach(q -> print(getUsername(q.getAuthorId()) +
+                "'s points: " + getPoints(q.getAuthorId()) + "\n" + q.toString() + "\n\n"));
     }
 
     private void handleSearchQuestionsByTag() {
@@ -260,7 +261,6 @@ public class ConsoleController implements CommandLineRunner {
         else
             scanner.nextLine();
 
-
     }
 
 
@@ -276,24 +276,23 @@ public class ConsoleController implements CommandLineRunner {
             int votes = questionManagementService.voteCount(questionId);
             question.setScore(votes);
 
+
+            int userPoints = getPoints(question.getAuthorId());
+            String userName = getUsername(question.getAuthorId());
+
+            print(userName +"'s points: " + userPoints);
             print(question.toString() + "\n");
 
             List<Answer> answers = answerManagementService.listAnswers(questionId);
             if (answers.isEmpty())
                 print("No answers for this question");
             else {
-               // answers.forEach(a -> a.setScore(answerManagementService.voteCount(a.getAnswerId())));
-                for (Answer i: answers) {
-                    votes = answerManagementService.voteCount(i.getAnswerId());
-                    i.setScore(votes);
-                }
-                answers.forEach(a -> print(a.toString() + "\n"));
+
+               answers.forEach(a -> a.setScore(answerManagementService.voteCount(a.getAnswerId())));
+               answers.forEach(a -> print(getUsername(a.getAuthorIdFk()) + "'s points: " + getPoints(a.getAuthorIdFk()) + "\n" + a.toString() + "\n"));
             }
         }
     }
-
-
-
 
 
     private void handleDeleteAnswer() {
@@ -335,6 +334,8 @@ public class ConsoleController implements CommandLineRunner {
             boolean isVoted = questionManagementService.handleVote(this.user.getUserId(), questionId, vote);
 
             if(!isVoted) {
+
+                questionManagementService.updatePoints(questionId);
                 print("Vote successfully saved");
                 print("The number of votes for this question is: " + questionManagementService.voteCount(questionId));
             }
@@ -370,6 +371,7 @@ public class ConsoleController implements CommandLineRunner {
             boolean isVoted = answerManagementService.handleVote(this.user.getUserId(), answerId, vote);
 
             if(!isVoted) {
+                answerManagementService.updatePoints(answerId);
                 print("Vote successfully saved");
                 print("The number of votes for this answer is: " + answerManagementService.voteCount(answerId));
             }
@@ -382,6 +384,15 @@ public class ConsoleController implements CommandLineRunner {
             print("Not a vote");
     }
 
+    private int getPoints(Integer authorId) {
+
+        return accountManagementService.findApplicationUserByUserId(authorId).getPoints();
+    }
+
+    private String getUsername(Integer authorId) {
+
+        return accountManagementService.findApplicationUserByUserId(authorId).getUsername();
+    }
 
     private void print(String value) {
         System.out.println(value);

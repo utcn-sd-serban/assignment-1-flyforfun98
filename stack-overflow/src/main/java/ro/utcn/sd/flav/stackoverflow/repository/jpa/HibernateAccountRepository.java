@@ -48,4 +48,9 @@ public class HibernateAccountRepository implements AccountRepository{
 
         return Optional.ofNullable(entityManager.find(ApplicationUser.class, id));
     }
+
+    @Override
+    public ApplicationUser findApplicationUserByUserId(int userId) {
+        return findById(userId).orElse(null);
+    }
 }

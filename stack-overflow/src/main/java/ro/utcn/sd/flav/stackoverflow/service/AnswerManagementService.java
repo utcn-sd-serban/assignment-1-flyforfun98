@@ -96,25 +96,35 @@ public class AnswerManagementService {
 
         VoteAnswer voteAnswer = repositoryFactory.createVoteAnswerRepository().findVoteForAnswer(userId, answerId).orElse(null);
         Answer answer = repositoryFactory.createAnswerRepository().findById(answerId).orElse(null);
+        ApplicationUser userVote = repositoryFactory.createAccountRepository().findById(userId).orElse(null);
 
         if((voteAnswer != null && voteAnswer.isVoteType() == vote) || answer == null || userId == answer.getAuthorIdFk())
             return true;
         else
         {
-            if(voteAnswer == null)
-                voteAnswer = new VoteAnswer(userId, answer.getAuthorIdFk(), answerId, vote);
 
-            voteAnswer.setVoteType(vote);
+                if (voteAnswer == null)
+                    voteAnswer = new VoteAnswer(userId, answer.getAuthorIdFk(), answerId, vote);
 
-            if(vote)
-                answer.setScore(answer.getScore() + 1);
-            else
-                answer.setScore(answer.getScore() - 1);
+                voteAnswer.setVoteType(vote);
 
-            repositoryFactory.createAnswerRepository().save(answer);
-            repositoryFactory.createVoteAnswerRepository().save(voteAnswer);
+                if (vote) {
+                    answer.setScore(answer.getScore() + 1);
+                }
+                else {
+                    answer.setScore(answer.getScore() - 1);
+                    if(userVote != null) {
 
-            return false;
+                        userVote.setPoints(userVote.getPoints() - 1);
+                        repositoryFactory.createAccountRepository().save(userVote);
+                    }
+                }
+
+                repositoryFactory.createAnswerRepository().save(answer);
+                repositoryFactory.createVoteAnswerRepository().save(voteAnswer);
+
+                return false;
+
         }
     }
 
@@ -127,5 +137,30 @@ public class AnswerManagementService {
         int upVotes = (int)voteAnswer.stream().filter(v -> v.isVoteType()).count();
 
         return  upVotes - downVotes;
+    }
+
+
+    @Transactional
+    public void updatePoints(int answerId)
+    {
+        List<VoteAnswer> voteAnswer = repositoryFactory.createVoteAnswerRepository().findAllVotesOfAnswer(answerId);
+        Answer answer = repositoryFactory.createAnswerRepository().findById(answerId).orElse(null);
+
+        int downVotes = (int)voteAnswer.stream().filter(v -> !v.isVoteType()).count();
+        int upVotes = (int)voteAnswer.stream().filter(v -> v.isVoteType()).count();
+
+        if(answer != null) {
+
+            ApplicationUser userAnswer = repositoryFactory.createAccountRepository().findById(answer.getAuthorIdFk()).orElse(null);
+
+            if(userAnswer != null) {
+
+                int downVotesScore = downVotes * 2;
+                int upVotesScore = upVotes * 10;
+                userAnswer.setPoints(userAnswer.getPoints() + upVotesScore - downVotesScore);
+
+                repositoryFactory.createAccountRepository().save(userAnswer);
+            }
+        }
     }
 }

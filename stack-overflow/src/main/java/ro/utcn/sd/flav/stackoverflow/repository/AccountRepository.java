@@ -11,4 +11,6 @@ public interface AccountRepository {
     ApplicationUser save(ApplicationUser applicationUser);
     void remove(ApplicationUser applicationUser);
     Optional<ApplicationUser> findById(int id);
+
+    ApplicationUser findApplicationUserByUserId(int userId);
 }

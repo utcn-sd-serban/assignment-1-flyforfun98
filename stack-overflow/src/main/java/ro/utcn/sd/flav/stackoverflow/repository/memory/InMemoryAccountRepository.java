@@ -44,4 +44,9 @@ public class InMemoryAccountRepository implements AccountRepository{
 
         return Optional.ofNullable(account.get(id));
     }
+
+    @Override
+    public ApplicationUser findApplicationUserByUserId(int userId) {
+        return account.get(userId);
+    }
 }

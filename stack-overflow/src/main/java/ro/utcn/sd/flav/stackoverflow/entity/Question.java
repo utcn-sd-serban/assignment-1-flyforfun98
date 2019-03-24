@@ -39,15 +39,6 @@ public class Question implements Comparable<Question>{
     private List<Tag> tags;
 
 
-    /*
-    @ManyToMany(cascade = CascadeType.MERGE)
-    //@LazyCollection(LazyCollectionOption.FALSE)
-    @JoinTable(
-            name = "vote_question",
-            joinColumns = @JoinColumn(name = "question__fk2"),
-            inverseJoinColumns = @JoinColumn(name = "author_id_fk1"))
-    private List<ApplicationUser> applicationUsers;*/
-
 
     public Question(Integer authorId, String title, String text, Date creationDate, int score)
     {

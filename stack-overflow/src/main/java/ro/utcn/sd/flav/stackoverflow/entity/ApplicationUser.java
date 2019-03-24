@@ -25,10 +25,6 @@ public class ApplicationUser {
     private int points;
 
 
-    /*
-    @ManyToMany(mappedBy = "applicationUsers", fetch = FetchType.EAGER)
-    private List<Question> questions;*/
-
     public ApplicationUser(String username, String password, UserPermission permission, UserStatus status, int points) {
         this.username = username;
         this.password = password;

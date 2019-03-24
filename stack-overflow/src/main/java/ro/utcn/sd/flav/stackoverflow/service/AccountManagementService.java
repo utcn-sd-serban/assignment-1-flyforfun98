@@ -41,6 +41,12 @@ public class AccountManagementService {
     }
 
     @Transactional
+    public ApplicationUser findApplicationUserByUserId(int userId)
+    {
+        return repositoryFactory.createAccountRepository().findById(userId).orElse(null);
+    }
+
+    @Transactional
     public void updateAccount (int id, String newUsername, String newPassword, UserPermission newPermission)
     {
         AccountRepository accountRepository = repositoryFactory.createAccountRepository();
