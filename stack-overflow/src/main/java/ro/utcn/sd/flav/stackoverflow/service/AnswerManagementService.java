@@ -102,7 +102,6 @@ public class AnswerManagementService {
             return true;
         else
         {
-
                 if (voteAnswer == null)
                     voteAnswer = new VoteAnswer(userId, answer.getAuthorIdFk(), answerId, vote);
 
