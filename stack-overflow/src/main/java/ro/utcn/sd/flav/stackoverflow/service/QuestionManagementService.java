@@ -3,15 +3,14 @@ package ro.utcn.sd.flav.stackoverflow.service;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ro.utcn.sd.flav.stackoverflow.entity.ApplicationUser;
-import ro.utcn.sd.flav.stackoverflow.entity.Question;
-import ro.utcn.sd.flav.stackoverflow.entity.Tag;
-import ro.utcn.sd.flav.stackoverflow.entity.VoteQuestion;
+import ro.utcn.sd.flav.stackoverflow.entity.*;
+import ro.utcn.sd.flav.stackoverflow.exception.AdminNotFoundException;
+import ro.utcn.sd.flav.stackoverflow.exception.NotAVoteException;
 import ro.utcn.sd.flav.stackoverflow.exception.QuestionNotFoundException;
 import ro.utcn.sd.flav.stackoverflow.repository.QuestionRepository;
 import ro.utcn.sd.flav.stackoverflow.repository.RepositoryFactory;
 
-import java.sql.Date;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -25,26 +24,30 @@ public class QuestionManagementService {
 
 
     @Transactional
-    public Question addQuestion(Integer authorId, String title, String text, Date creationDate, int score, ArrayList<Tag> tags)
+    public Question addQuestion(Integer authorId, String title, String text, ArrayList<Tag> tags)
     {
-        Question question = new Question(authorId,title,text,creationDate,score);
+        Date creationDate = new Date();
+        Question question = new Question(authorId,title,text,new java.sql.Date(creationDate.getTime()),0);
         question.addTags(tags);
         return repositoryFactory.createQuestionRepository().save(question);
     }
 
     @Transactional
-    public void removeQuestion(Integer id)
+    public void removeQuestion(ApplicationUser user, Integer id)
     {
-        QuestionRepository questionRepository = repositoryFactory.createQuestionRepository();
+        if(!user.getPermission().equals(UserPermission.ADMIN))
+            throw new AdminNotFoundException();
+        else {
+            QuestionRepository questionRepository = repositoryFactory.createQuestionRepository();
 
-        try{
+            try {
 
-            Question question = questionRepository.findById(id).orElseThrow(QuestionNotFoundException::new);
-            questionRepository.remove(question);
-            repositoryFactory.createQuestionRepository().remove(question);
-        }
-        catch (QuestionNotFoundException e){
-            System.out.println("Not a valid question id");
+                Question question = questionRepository.findById(id).orElseThrow(QuestionNotFoundException::new);
+                questionRepository.remove(question);
+                repositoryFactory.createQuestionRepository().remove(question);
+            } catch (QuestionNotFoundException e) {
+                throw new QuestionNotFoundException();
+            }
         }
     }
 
@@ -59,18 +62,22 @@ public class QuestionManagementService {
     }
 
     @Transactional
-    public void updateQuestion(int id, String title, String text)
+    public void updateQuestion(int id, String title, String text, ApplicationUser user)
     {
-        QuestionRepository questionRepository = repositoryFactory.createQuestionRepository();
 
-        try {
-            Question question = questionRepository.findById(id).orElseThrow(QuestionNotFoundException::new);
-            question.setTitle(title);
-            question.setText(text);
-            questionRepository.save(question);
-        }
-        catch (QuestionNotFoundException e){
-            System.out.println("No question with this id was found");
+        if(!user.getPermission().equals(UserPermission.ADMIN))
+            throw new AdminNotFoundException();
+        else {
+            QuestionRepository questionRepository = repositoryFactory.createQuestionRepository();
+
+            try {
+                Question question = questionRepository.findById(id).orElseThrow(QuestionNotFoundException::new);
+                question.setTitle(title);
+                question.setText(text);
+                questionRepository.save(question);
+            } catch (QuestionNotFoundException e) {
+                throw new QuestionNotFoundException();
+            }
         }
     }
 
@@ -101,37 +108,38 @@ public class QuestionManagementService {
     }
 
     @Transactional
-    public boolean handleVote(Integer userId, int questionId, boolean vote) {
+    public boolean handleVote(Integer userId, int questionId, String voteText) {
 
-        VoteQuestion voteQuestion = repositoryFactory.createVoteQuestionRepository().findVoteForQuestion(userId, questionId).orElse(null);
-        Question question = repositoryFactory.createQuestionRepository().findById(questionId).orElse(null);
+        boolean vote;
+        if(voteText.equals("UP") || voteText.equals("DOWN")) {
 
-        if((voteQuestion != null && voteQuestion.isVoteType() == vote) || question == null || userId == question.getAuthorId())
-            return true;
-        else
-        {
+            vote = voteText.equals("UP");
 
-                if (voteQuestion == null) {
+            VoteQuestion voteQuestion = repositoryFactory.createVoteQuestionRepository().findVoteForQuestion(userId, questionId).orElse(null);
+            Question question = repositoryFactory.createQuestionRepository().findById(questionId).orElse(null);
 
+            if ((voteQuestion != null && voteQuestion.isVoteType() == vote) || question == null || userId == question.getAuthorId())
+                return true;
+            else {
+
+                if (voteQuestion == null)
                     voteQuestion = new VoteQuestion(userId, question.getAuthorId(), questionId, vote);
-                }
+
                 voteQuestion.setVoteType(vote);
 
-                if (vote) {
+                if (vote)
                     question.setScore(question.getScore() + 1);
-
-                } else {
-
+                else
                     question.setScore(question.getScore() - 1);
-
-                }
 
                 repositoryFactory.createQuestionRepository().save(question);
                 repositoryFactory.createVoteQuestionRepository().save(voteQuestion);
 
                 return false;
-
+            }
         }
+        else
+            throw new NotAVoteException();
     }
 
     @Transactional

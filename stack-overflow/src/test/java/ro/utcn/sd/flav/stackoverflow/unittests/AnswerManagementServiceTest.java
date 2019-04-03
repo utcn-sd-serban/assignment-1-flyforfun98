@@ -1,5 +1,6 @@
 package ro.utcn.sd.flav.stackoverflow.unittests;
 
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import ro.utcn.sd.flav.stackoverflow.entity.*;
@@ -14,7 +15,7 @@ import java.util.ArrayList;
 
 
 
-public class AnswerManagementServiceTest extends TestRuler{
+public class AnswerManagementServiceTest{
 
 
     private static RepositoryFactory createMockedFactory() throws ParseException {
@@ -46,21 +47,15 @@ public class AnswerManagementServiceTest extends TestRuler{
     }
 
 
-    @BeforeClass
-    public static void beforeClass() {
-        Skip.IF(true);
-    }
-
-
     @Test
     public void handleVote() throws ParseException {
 
         RepositoryFactory factory = createMockedFactory();
         AnswerManagementService answerService = new AnswerManagementService(factory);
 
-        Skip.UNLESS(answerService.handleVote(2,1,true));
-        Skip.UNLESS(answerService.handleVote(2,1,false));
-        Skip.IF(answerService.handleVote(1,1,false));
+        Assert.assertFalse(answerService.handleVote(2,1,"UP"));
+        Assert.assertFalse(answerService.handleVote(2,1,"DOWN"));
+        Assert.assertTrue(answerService.handleVote(1,1,"DOWN"));
     }
 
     @Test
@@ -69,10 +64,10 @@ public class AnswerManagementServiceTest extends TestRuler{
         RepositoryFactory factory = createMockedFactory();
         AnswerManagementService answerService = new AnswerManagementService(factory);
 
-        answerService.handleVote(2,3,true);
-        Skip.IF(answerService.voteCount(3) == 1);
-        Skip.UNLESS(answerService.voteCount(2) == 1);
-        Skip.IF(answerService.voteCount(4) == 0);
+        answerService.handleVote(2,3,"UP");
+        Assert.assertEquals(1, answerService.voteCount(3));
+        Assert.assertFalse(answerService.voteCount(2) == 1);
+        Assert.assertTrue(answerService.voteCount(4) == 0);
 
     }
 
@@ -87,14 +82,14 @@ public class AnswerManagementServiceTest extends TestRuler{
         answers1.get(1).setScore(2);
         answers1.get(2).setScore(1);
 
-        Skip.UNLESS(answerService.listAnswers(1).equals(answers1));
+        Assert.assertFalse(answerService.listAnswers(1).equals(answers1));
 
         ArrayList<Answer> answers2 = new ArrayList<>();
         answers2.add(answers1.get(1));
         answers2.add(answers1.get(2));
         answers2.add(answers1.get(0));
 
-        Skip.IF(answerService.listAnswers(1).equals(answers2));
+        Assert.assertTrue(answerService.listAnswers(1).equals(answers2));
 
     }
 

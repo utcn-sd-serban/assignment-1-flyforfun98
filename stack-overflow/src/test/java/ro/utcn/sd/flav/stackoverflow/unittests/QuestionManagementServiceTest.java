@@ -1,5 +1,6 @@
 package ro.utcn.sd.flav.stackoverflow.unittests;
 
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import ro.utcn.sd.flav.stackoverflow.entity.*;
@@ -16,7 +17,7 @@ import java.util.Set;
 
 
 
-public class QuestionManagementServiceTest extends TestRuler {
+public class QuestionManagementServiceTest{
 
 
 
@@ -48,21 +49,15 @@ public class QuestionManagementServiceTest extends TestRuler {
         }
 
 
-        @BeforeClass
-        public static void beforeClass() {
-            Skip.IF(true);
-        }
-
-
         @Test
         public void handleVote() throws ParseException {
 
             RepositoryFactory factory = createMockedFactory();
             QuestionManagementService questionService = new QuestionManagementService(factory);
 
-            Skip.UNLESS(questionService.handleVote(2,1,true));
-            Skip.UNLESS(questionService.handleVote(2,1,false));
-            Skip.IF(questionService.handleVote(1,1,false));
+            Assert.assertFalse(questionService.handleVote(2,1,"UP"));
+            Assert.assertFalse(questionService.handleVote(2,1,"DOWN"));
+            Assert.assertTrue(questionService.handleVote(1,1,"DOWN"));
         }
 
         @Test
@@ -71,10 +66,10 @@ public class QuestionManagementServiceTest extends TestRuler {
             RepositoryFactory factory = createMockedFactory();
             QuestionManagementService questionService = new QuestionManagementService(factory);
 
-            questionService.handleVote(2,3,true);
-            Skip.IF(questionService.voteCount(3) == 0);
-            Skip.UNLESS(questionService.voteCount(2) == 1);
-            Skip.IF(questionService.voteCount(4) == 0);
+            questionService.handleVote(2,3,"UP");
+            Assert.assertEquals(0, questionService.voteCount(3)); // o sa dea eroare
+            Assert.assertFalse(questionService.voteCount(2) == 1);
+            Assert.assertTrue(questionService.voteCount(4) == 0);
 
         }
 
@@ -95,7 +90,7 @@ public class QuestionManagementServiceTest extends TestRuler {
                     "Why are collections useful?", createDate("2018-03-21"), 0));
 
 
-            Skip.IF(questionService.listQuestions().equals(questions1));
+            Assert.assertTrue(questionService.listQuestions().equals(questions1));
 
 
             ArrayList<Question> questions2 = new ArrayList<>();
@@ -104,7 +99,7 @@ public class QuestionManagementServiceTest extends TestRuler {
             questions2.add(questions1.get(0));
             questions2.add(questions1.get(3));
 
-            Skip.UNLESS(questionService.listQuestions().equals(questions2));
+            Assert.assertFalse(questionService.listQuestions().equals(questions2));
 
         }
 
@@ -130,17 +125,17 @@ public class QuestionManagementServiceTest extends TestRuler {
         questions2.add(questions1.get(1));
         questions2.add(questions1.get(3));
 
-        Skip.IF(questionService.filterQuestionByTitle("i").equals(questions2));
+        Assert.assertTrue(questionService.filterQuestionByTitle("i").equals(questions2));
 
         questions2.remove(1);
         questions2.remove(1);
 
-        Skip.IF(questionService.filterQuestionByTitle("integers").equals(questions2));
+        Assert.assertTrue(questionService.filterQuestionByTitle("integers").equals(questions2));
 
         questions2.add(questions1.get(2));
         questions2.add(questions1.get(1));
 
-        Skip.UNLESS(questionService.filterQuestionByTitle("i").equals(questions2));
+        Assert.assertFalse(questionService.filterQuestionByTitle("i").equals(questions2));
     }
 
 
@@ -186,19 +181,19 @@ public class QuestionManagementServiceTest extends TestRuler {
                 "Why are collections useful?", createDate("2018-03-21"), 0));
 
 
-        Skip.IF(questionService.filterQuestionByTag(stringTags).size() == 1);
+        Assert.assertEquals(1, questionService.filterQuestionByTag(stringTags).size());
 
 
         stringTags.remove("index-out-of-bounds");
-        Skip.IF(questionService.filterQuestionByTag(stringTags).size() == 2);
+        Assert.assertEquals(2, questionService.filterQuestionByTag(stringTags).size());
 
         stringTags.add("dependency-injection");
         stringTags.add("arrays");
 
-        Skip.UNLESS(questionService.filterQuestionByTag(stringTags).size() >= 1);
+        Assert.assertFalse(questionService.filterQuestionByTag(stringTags).size() >= 1);
 
         stringTags.remove("memory");
-        Skip.UNLESS(questionService.filterQuestionByTag(stringTags).size() != 1);
+        Assert.assertFalse(questionService.filterQuestionByTag(stringTags).size() != 1);
     }
 
 

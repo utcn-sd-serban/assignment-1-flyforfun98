@@ -31,7 +31,7 @@ public class Question implements Comparable<Question>{
     private Date creationDate;
     private int score;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinTable(
             name = "question_tags",
             joinColumns = @JoinColumn(name = "question_id_fk1"),

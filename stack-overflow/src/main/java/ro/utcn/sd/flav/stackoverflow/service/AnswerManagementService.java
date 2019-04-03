@@ -9,6 +9,8 @@ import ro.utcn.sd.flav.stackoverflow.entity.UserPermission;
 import ro.utcn.sd.flav.stackoverflow.entity.VoteAnswer;
 import ro.utcn.sd.flav.stackoverflow.exception.AccountNotFoundException;
 import ro.utcn.sd.flav.stackoverflow.exception.AnswerNotFoundException;
+import ro.utcn.sd.flav.stackoverflow.exception.AnswerRemovalException;
+import ro.utcn.sd.flav.stackoverflow.exception.NotAVoteException;
 import ro.utcn.sd.flav.stackoverflow.repository.AnswerRepository;
 import ro.utcn.sd.flav.stackoverflow.repository.RepositoryFactory;
 
@@ -42,7 +44,7 @@ public class AnswerManagementService {
             Answer answer = answerRepository.findById(answerId).orElseThrow(AnswerNotFoundException::new);
 
             if (!answer.getAuthorIdFk().equals(user.getUserId()) && !user.getPermission().equals(UserPermission.ADMIN)) {
-                System.out.println("No permission to remove the answer");
+                throw new AnswerRemovalException();
             }
             else {
                 answerRepository.remove(answer);
@@ -51,7 +53,7 @@ public class AnswerManagementService {
         }
         catch (AnswerNotFoundException e)
         {
-            System.out.println("No answer id or user was found");
+            throw new AnswerNotFoundException();
         }
     }
 
@@ -92,16 +94,20 @@ public class AnswerManagementService {
     }
 
     @Transactional
-    public boolean handleVote(Integer userId, int answerId, boolean vote) {
+    public boolean handleVote(Integer userId, int answerId, String voteText) {
 
-        VoteAnswer voteAnswer = repositoryFactory.createVoteAnswerRepository().findVoteForAnswer(userId, answerId).orElse(null);
-        Answer answer = repositoryFactory.createAnswerRepository().findById(answerId).orElse(null);
-        ApplicationUser userVote = repositoryFactory.createAccountRepository().findById(userId).orElse(null);
 
-        if((voteAnswer != null && voteAnswer.isVoteType() == vote) || answer == null || userId == answer.getAuthorIdFk())
-            return true;
-        else
-        {
+        boolean vote;
+        if(voteText.equals("UP") || voteText.equals("DOWN")) {
+            vote = voteText.equals("UP");
+
+            VoteAnswer voteAnswer = repositoryFactory.createVoteAnswerRepository().findVoteForAnswer(userId, answerId).orElse(null);
+            Answer answer = repositoryFactory.createAnswerRepository().findById(answerId).orElse(null);
+            ApplicationUser userVote = repositoryFactory.createAccountRepository().findById(userId).orElse(null);
+
+            if ((voteAnswer != null && voteAnswer.isVoteType() == vote) || answer == null || userId == answer.getAuthorIdFk())
+                return true;
+            else {
                 if (voteAnswer == null)
                     voteAnswer = new VoteAnswer(userId, answer.getAuthorIdFk(), answerId, vote);
 
@@ -109,22 +115,22 @@ public class AnswerManagementService {
 
                 if (vote) {
                     answer.setScore(answer.getScore() + 1);
-                }
-                else {
+                } else {
                     answer.setScore(answer.getScore() - 1);
-                    if(userVote != null) {
+                    if (userVote != null) {
 
                         userVote.setPoints(userVote.getPoints() - 1);
                         repositoryFactory.createAccountRepository().save(userVote);
                     }
                 }
-
                 repositoryFactory.createAnswerRepository().save(answer);
                 repositoryFactory.createVoteAnswerRepository().save(voteAnswer);
 
                 return false;
-
+            }
         }
+        else
+            throw new NotAVoteException();
     }
 
     @Transactional

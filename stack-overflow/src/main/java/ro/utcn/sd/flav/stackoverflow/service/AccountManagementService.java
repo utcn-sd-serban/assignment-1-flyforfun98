@@ -6,10 +6,12 @@ import org.springframework.transaction.annotation.Transactional;
 import ro.utcn.sd.flav.stackoverflow.entity.ApplicationUser;
 import ro.utcn.sd.flav.stackoverflow.entity.UserPermission;
 import ro.utcn.sd.flav.stackoverflow.entity.UserStatus;
+import ro.utcn.sd.flav.stackoverflow.exception.AccountExistsException;
 import ro.utcn.sd.flav.stackoverflow.exception.AccountNotFoundException;
+import ro.utcn.sd.flav.stackoverflow.exception.AdminNotFoundException;
+import ro.utcn.sd.flav.stackoverflow.exception.BannedUserException;
 import ro.utcn.sd.flav.stackoverflow.repository.AccountRepository;
 import ro.utcn.sd.flav.stackoverflow.repository.RepositoryFactory;
-import ro.utcn.sd.flav.stackoverflow.repository.memory.InMemoryRepositoryFactory;
 
 import java.util.List;
 
@@ -19,8 +21,59 @@ import java.util.List;
 public class AccountManagementService {
     private final RepositoryFactory repositoryFactory;
 
+
     @Transactional
-    public ApplicationUser addUser(String username, String password, UserPermission permission, UserStatus status, int points)
+    public ApplicationUser login(String username, String password) {
+
+        ApplicationUser user;
+        if( (user = isAccountExistent(username, password, false)) != null )
+        {
+
+            if(user.getStatus() != UserStatus.BANNED)
+                return user;
+            else
+                throw new BannedUserException();
+
+        }
+
+        throw new AccountNotFoundException();
+
+    }
+
+    @Transactional
+    public ApplicationUser register(String username, String password) {
+
+        ApplicationUser user;
+        if( isAccountExistent(username, password, true) == null)
+            user = addUser(username, password, UserPermission.USER, UserStatus.ALLOWED,0);
+        else
+            throw new AccountExistsException();
+
+        return user;
+    }
+
+    @Transactional
+    public void changeUserStatusToBanned(ApplicationUser admin, int userId)
+    {
+        if(!admin.getPermission().equals(UserPermission.ADMIN))
+            throw new AdminNotFoundException();
+        else
+            updateAccount(userId, UserStatus.BANNED);
+
+    }
+
+    @Transactional
+    public void changeUserStatusToUnbanned(ApplicationUser admin, int userId)
+    {
+        if(!admin.getPermission().equals(UserPermission.ADMIN))
+            throw new AdminNotFoundException();
+        else
+            updateAccount(userId, UserStatus.ALLOWED);
+
+    }
+
+    @Transactional
+    private ApplicationUser addUser(String username, String password, UserPermission permission, UserStatus status, int points)
     {
         return repositoryFactory.createAccountRepository().save(new ApplicationUser(username, password, permission, status, points));
     }
@@ -47,7 +100,7 @@ public class AccountManagementService {
     }
 
     @Transactional
-    public void updateAccount (int id, UserStatus newStatus)
+    private void updateAccount (int id, UserStatus newStatus)
     {
         AccountRepository accountRepository = repositoryFactory.createAccountRepository();
 
@@ -58,12 +111,12 @@ public class AccountManagementService {
         }
         catch(AccountNotFoundException e)
         {
-            System.out.println("No user with this id");
+            throw new AccountNotFoundException();
         }
     }
 
     @Transactional
-    public ApplicationUser isAccountExistent(String username, String password, boolean register)
+    private ApplicationUser isAccountExistent(String username, String password, boolean register)
     {
 
         if(register)
@@ -84,5 +137,6 @@ public class AccountManagementService {
 
         return null;
     }
+
 
 }

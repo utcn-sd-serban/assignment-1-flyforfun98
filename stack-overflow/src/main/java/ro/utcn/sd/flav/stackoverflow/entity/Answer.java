@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.sql.Date;
+import java.util.List;
 
 
 @Data
@@ -22,7 +23,6 @@ public class Answer {
     private String text;
     private Date creationDate;
     int score;
-
 
     public Answer(Integer authorIdFk, Integer questionIdFk, String text, Date creationDate, int score)
     {
